@@ -9,14 +9,20 @@ Created on 13 oct 2022
 from graphics import species
 import numpy as np
 import pygame as pg
-from math import sqrt
+from math import sqrt, ceil
+
+# Biome RGB Values
+GRASS = 0
+SAND = 1
+WATER = 2
+RGBs = [(0,175,0), (255,204,153), (0,102,204)]
 
 # Global variables
 embryos = []
 
 def euclidean_dist(p1, p2):
     """
-    Calculates the euclidean distance between two points in a 2D space 
+    Calculates the euclidean distance between two points in a 2D or 3D space 
     
         Parameters:
             p1 (int tuple): First point
@@ -26,7 +32,8 @@ def euclidean_dist(p1, p2):
             Euclidean distance
     """
     
-    return sqrt((p1[0]-p2[0])**2+(p1[1]-p2[1])**2) 
+    if len(p1) == 2: return sqrt((p1[0]-p2[0])**2+(p1[1]-p2[1])**2) 
+    elif len(p1) == 3: return sqrt((p1[0]-p2[0])**2+(p1[1]-p2[1])**2+(p1[2]-p2[2])**2)
 
 def gen_individuals(n_squares, sq_size, bg_mat, ind_list):
     """
@@ -60,8 +67,8 @@ def display_individuals(ind_list, scr):
     
     for i in ind_list:
         if i.age <= i.childhood:
-            pg.draw.circle(scr, i.colour, (i.location[0]-i.size/4, i.location[1]-i.size/4), i.size/2)
-            pg.draw.circle(scr, (0,0,0), (i.location[0]-i.size/4, i.location[1]-i.size/4), i.size/2, 2)
+            pg.draw.circle(scr, i.colour, (i.location[0]-i.childhood_size/2, i.location[1]-i.childhood_size/2), i.childhood_size)
+            pg.draw.circle(scr, (0,0,0), (i.location[0]-i.childhood_size/2, i.location[1]-i.childhood_size/2), i.childhood_size, 2)
         else:
             pg.draw.circle(scr, i.colour, (i.location[0]-i.size/2, i.location[1]-i.size/2), i.size)
             pg.draw.circle(scr, (0,0,0), (i.location[0]-i.size/2, i.location[1]-i.size/2), i.size, 2)
@@ -81,8 +88,9 @@ def update_individuals(ind_list, n_squares, sq_size, bg_mat):
     """
     
     for i in ind_list:
-        # Growth
+        # Growing up
         i.age += 1
+        if i.age <= i.childhood: i.childhood_size += i.growth
         # Walking
         i.update_pos(n_squares, sq_size, bg_mat)
         # Conception
@@ -103,7 +111,37 @@ def update_individuals(ind_list, n_squares, sq_size, bg_mat):
                         i.gestation_days += 1
                         for _ in range(i.offspring_number):
                             embryos.append(species.Species(n_squares, sq_size, bg_mat, j, i))
+        # Death
+        calculate_death_prob(i, bg_mat, sq_size)
+        if i.death_prob*100 >= np.random.choice(100)+1: ind_list.remove(i)
                             
     
-def death():
-    return
+def calculate_death_prob(i, bg_mat, sq_size):
+    # Define probabilities
+    death_prob = 0.0
+    sand_prob = 0.1
+    child_prob = 0.05
+    old_prob = 0.4
+    small_prob = 0.3
+    cammo_prob = 0.001
+    
+    # Habitat
+    habitat = bg_mat[ceil(i.location[0]/sq_size)-1][ceil(i.location[1]/sq_size)-1]
+    if i.s_type == "Terrestrial" and habitat == SAND: death_prob += sand_prob        
+    # Age
+    if i.age <= i.childhood: death_prob += child_prob  
+    elif i.age >= i.old_age_death: death_prob += old_prob  
+    # Size
+    if i.age <= i.childhood: death_prob += small_prob/i.childhood_size
+    else:
+        if i.size < sq_size*0.15: death_prob += small_prob/i.size
+    # Camouflage
+    cammo_diff = euclidean_dist(i.colour, RGBs[habitat])
+    death_prob += cammo_diff*cammo_prob
+    
+    # Update probability
+    i.death_prob = death_prob
+
+
+
+

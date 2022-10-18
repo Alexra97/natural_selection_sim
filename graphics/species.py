@@ -7,7 +7,7 @@ Created on 13 oct 2022
 
 # Imports
 import numpy as np
-import math
+from math import ceil
 from os import listdir
 from os.path import isfile, join
 
@@ -48,11 +48,11 @@ def set_position(s_type, n_squares, sq_size, bg_mat, prev_pos = None):
                 
         # Detect habitat borders
         if s_type == "Terrestrial":
-            while bg_mat[math.ceil(x/sq_size)-1][math.ceil(y/sq_size)-1] == 2:
+            while bg_mat[ceil(x/sq_size)-1][ceil(y/sq_size)-1] == 2:
                 x = np.random.choice(n_squares*sq_size-1)
                 y = np.random.choice(n_squares*sq_size-1)
         elif s_type == "Aquatic":
-            while bg_mat[math.ceil(x/sq_size)-1][math.ceil(y/sq_size)-1] != 2:
+            while bg_mat[ceil(x/sq_size)-1][ceil(y/sq_size)-1] != 2:
                 x = np.random.choice(n_squares*sq_size-1)
                 y = np.random.choice(n_squares*sq_size-1)
     
@@ -71,7 +71,7 @@ def set_position(s_type, n_squares, sq_size, bg_mat, prev_pos = None):
                 
         # Detect habitat borders
         if s_type == "Terrestrial":
-            while bg_mat[math.ceil(x/sq_size)-1][math.ceil(y/sq_size)-1] == 2:
+            while bg_mat[ceil(x/sq_size)-1][ceil(y/sq_size)-1] == 2:
                 x = prev_pos[0] + np.random.choice(range(max_move_bkwd, max_move_frwd))
                 y = prev_pos[1] + np.random.choice(range(max_move_bkwd, max_move_frwd))
                 
@@ -81,7 +81,7 @@ def set_position(s_type, n_squares, sq_size, bg_mat, prev_pos = None):
                 if x < 0: x = 0
                 if y < 0: y = 0
         elif s_type == "Aquatic":
-            while bg_mat[math.ceil(x/sq_size)-1][math.ceil(y/sq_size)-1] != 2:
+            while bg_mat[ceil(x/sq_size)-1][ceil(y/sq_size)-1] != 2:
                 x = prev_pos[0] + np.random.choice(range(max_move_bkwd, max_move_frwd))
                 y = prev_pos[1] + np.random.choice(range(max_move_bkwd, max_move_frwd))
                 
@@ -130,8 +130,6 @@ class Species:
 
         Attributes
         ----------
-            dead : boolean
-                State of the individual, alive or dead
             death_prob : float
                 Probability of death
             old_age_death : int
@@ -160,6 +158,10 @@ class Species:
                 Position of the individual
             sprite_path : str
                 Path to the sprite for the species
+            childhood_size : int
+                Size of hatchling during its childhood
+            growth : int
+                Size growth between days
             mother : Species
                 Mother object of the individual if exists
         
@@ -186,6 +188,9 @@ class Species:
                 Specimen to imitate its properties if needed
         """
              
+        # Common attributes
+        self.childhood = np.random.choice(75)+15    
+        
         # Specimen attributes
         if specimen is None:
             self.name = create_tax_name()
@@ -195,8 +200,9 @@ class Species:
             self.size = np.random.choice(round(sq_size*0.25))+1  
             self.location = set_position(self.s_type, n_squares, sq_size, bg_mat)
             self.old_age_death = np.random.choice(2190)+730
+            self.childhood_size = np.random.choice(round(self.size/3)+1)+1
+            self.growth = round((self.size-self.childhood_size)/self.childhood)
             self.mother = None
-            
             if self.s_type == "Terrestrial":   
                 self.sprite_path = ".\\sprites\\terrestrial\\" + sprites_terr[np.random.choice(len(sprites_terr))] 
             elif self.s_type == "Aquatic":
@@ -214,10 +220,11 @@ class Species:
             self.sprite_path = specimen.sprite_path
             self.old_age_death = specimen.old_age_death + np.random.choice(range(-700, 730))
             self.mother = None
-            
             size_chg_pct = round(specimen.size/10)
             if size_chg_pct == 0: size_chg_pct = 1
             self.size = specimen.size + np.random.choice(range(-size_chg_pct, size_chg_pct))
+            self.childhood_size = np.random.choice(round(self.size/3)+1)+1
+            self.growth = round((self.size-self.childhood_size)/self.childhood)
         
         # Offspring attributes
         else:
@@ -230,15 +237,15 @@ class Species:
             self.sprite_path = mother.sprite_path
             self.old_age_death = fathers[np.random.choice(2)].old_age_death + np.random.choice(range(-700, 730))
             self.size = fathers[np.random.choice(2)].size
+            self.childhood_size = mother.offspring_size
+            self.growth = round((self.size-self.childhood_size)/self.childhood)
             self.mother = mother
         
         # Common attributes
         ## Death
-        self.dead = False
         self.death_prob = 0.0 
         ## Reproduction
         self.gender = genders[np.random.choice(2)]
-        self.childhood = np.random.choice(75)+15
         self.gestation_days = 0
         if self.gender == "Male": 
             self.gestation_period = None
