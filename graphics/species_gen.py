@@ -51,7 +51,7 @@ def gen_individuals(n_squares, sq_size, bg_mat, ind_list):
     ind_list.append(specimen)
     
     # Generate the normal individuals
-    n_ind = np.random.choice(10)+1
+    n_ind = np.random.choice(30)+1
     for _ in range(n_ind):
         i = species.Species(n_squares, sq_size, bg_mat, specimen)
         ind_list.append(i)        
@@ -72,9 +72,6 @@ def display_individuals(ind_list, scr):
         else:
             pg.draw.circle(scr, i.colour, (i.location[0]-i.size/2, i.location[1]-i.size/2), i.size)
             pg.draw.circle(scr, (0,0,0), (i.location[0]-i.size/2, i.location[1]-i.size/2), i.size, 2)
-        #sprite = pg.image.load(i.sprite_path).convert_alpha()
-        #sprite = pg.transform.scale(sprite, (i.size, i.size))
-        #scr.blit(sprite, (i.location[0]-i.size/2, i.location[1]-i.size/2))
         
 def update_individuals(ind_list, n_squares, sq_size, bg_mat):
     """
@@ -119,28 +116,31 @@ def update_individuals(ind_list, n_squares, sq_size, bg_mat):
 def calculate_death_prob(i, bg_mat, sq_size):
     # Define probabilities
     death_prob = 0.0
-    sand_prob = 0.1
-    child_prob = 0.05
-    old_prob = 0.4
-    small_prob = 0.3
+    grass_prob = 0.1
+    child_prob = 0.001
+    old_prob = 0.2
+    size_prob = 0.01
     cammo_prob = 0.001
     
     # Habitat
     habitat = bg_mat[ceil(i.location[0]/sq_size)-1][ceil(i.location[1]/sq_size)-1]
-    if i.s_type == "Terrestrial" and habitat == SAND: death_prob += sand_prob        
+    if i.s_type == "Terrestrial" and habitat == GRASS: death_prob -= grass_prob        
     # Age
     if i.age <= i.childhood: death_prob += child_prob  
     elif i.age >= i.old_age_death: death_prob += old_prob  
     # Size
-    if i.age <= i.childhood: death_prob += small_prob/i.childhood_size
+    if i.age <= i.childhood: death_prob -= i.childhood_size*size_prob
     else:
-        if i.size < sq_size*0.15: death_prob += small_prob/i.size
+        if i.size > 0: death_prob -= i.size*size_prob
+        
+    
     # Camouflage
     cammo_diff = euclidean_dist(i.colour, RGBs[habitat])
     death_prob += cammo_diff*cammo_prob
     
     # Update probability
     i.death_prob = death_prob
+    print(death_prob)
 
 
 

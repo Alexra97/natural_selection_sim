@@ -17,10 +17,7 @@ tax_sec = open("tax_sec.txt", "r")
 names1 = tax_first.read().split("\n")
 names2 = tax_sec.read().split("\n")
 genders = ["Male", "Female"]
-types = ["Terrestrial", "Aquatic", "Aerial"]
-sprites_terr = [f for f in listdir(".\\sprites\\terrestrial\\") if isfile(join(".\\sprites\\terrestrial\\", f))]
-sprites_aq = [f for f in listdir(".\\sprites\\aquatic\\") if isfile(join(".\\sprites\\aquatic\\", f))]
-sprites_aer = [f for f in listdir(".\\sprites\\aerial\\") if isfile(join(".\\sprites\\aerial\\", f))]
+types = ["Terrestrial", "Aquatic"]
 species = []
 
 tax_first.close()
@@ -156,8 +153,6 @@ class Species:
                 Size of the individual
             location : int tuple
                 Position of the individual
-            sprite_path : str
-                Path to the sprite for the species
             childhood_size : int
                 Size of hatchling during its childhood
             growth : int
@@ -187,28 +182,25 @@ class Species:
             specimen : Species
                 Specimen to imitate its properties if needed
         """
-             
-        # Common attributes
-        self.childhood = np.random.choice(75)+15    
         
         # Specimen attributes
         if specimen is None:
             self.name = create_tax_name()
             self.age = np.random.choice(75)
-            self.s_type = types[np.random.choice(3)]
+            self.s_type = types[np.random.choice(2)]
             self.colour = list(np.random.choice(256, 3))
-            self.size = np.random.choice(round(sq_size*0.25))+1  
+            self.size = np.random.choice(round(sq_size*0.35))+1  
             self.location = set_position(self.s_type, n_squares, sq_size, bg_mat)
-            self.old_age_death = np.random.choice(2190)+730
+            self.old_age_death = np.random.choice(1095)+730
+            self.childhood = np.random.choice(75)+15  
             self.childhood_size = np.random.choice(round(self.size/3)+1)+1
             self.growth = round((self.size-self.childhood_size)/self.childhood)
             self.mother = None
-            if self.s_type == "Terrestrial":   
-                self.sprite_path = ".\\sprites\\terrestrial\\" + sprites_terr[np.random.choice(len(sprites_terr))] 
-            elif self.s_type == "Aquatic":
-                self.sprite_path = ".\\sprites\\aquatic\\" + sprites_aq[np.random.choice(len(sprites_aq))]
-            elif self.s_type == "Aerial":
-                self.sprite_path = ".\\sprites\\aerial\\" + sprites_aer[np.random.choice(len(sprites_aer))]
+            self.offspring_size = np.random.choice(round(self.size/3)+1)+1
+            max_offspring_n = round(round(self.size*0.33)/self.offspring_size)
+            if max_offspring_n == 0: max_offspring_n = 1
+            self.offspring_number = np.random.choice(max_offspring_n)+1
+            self.gestation_period = np.random.choice(150)+150
                 
         # Normal individual attributes
         elif specimen is not None and mother is None :
@@ -217,48 +209,61 @@ class Species:
             self.s_type = specimen.s_type
             self.colour = specimen.colour
             self.location = set_position(self.s_type, n_squares, sq_size, bg_mat, specimen.location)
-            self.sprite_path = specimen.sprite_path
             self.old_age_death = specimen.old_age_death + np.random.choice(range(-700, 730))
             self.mother = None
             size_chg_pct = round(specimen.size/10)
             if size_chg_pct == 0: size_chg_pct = 1
             self.size = specimen.size + np.random.choice(range(-size_chg_pct, size_chg_pct))
+            self.childhood = specimen.childhood
             self.childhood_size = np.random.choice(round(self.size/3)+1)+1
             self.growth = round((self.size-self.childhood_size)/self.childhood)
+            self.offspring_size = np.random.choice(round(self.size/3)+1)+1
+            max_offspring_n = round(round(self.size*0.33)/self.offspring_size)
+            if max_offspring_n == 0: max_offspring_n = 1
+            self.offspring_number = np.random.choice(max_offspring_n)+1
+            self.gestation_period = np.random.choice(150)+150
         
         # Offspring attributes
         else:
+            mutation_prob = 10
+            
             fathers = [specimen, mother]
             self.name = mother.name
             self.age = 0
             self.s_type = fathers[np.random.choice(2)].s_type
-            self.colour = fathers[np.random.choice(2)].colour
             self.location = mother.location
-            self.sprite_path = mother.sprite_path
             self.old_age_death = fathers[np.random.choice(2)].old_age_death + np.random.choice(range(-700, 730))
-            self.size = fathers[np.random.choice(2)].size
-            self.childhood_size = mother.offspring_size
-            self.growth = round((self.size-self.childhood_size)/self.childhood)
             self.mother = mother
+            self.childhood_size = mother.offspring_size
+            
+            # Possible mutations
+            if np.random.choice(100)+1 <= mutation_prob: self.colour = list(np.random.choice(256, 3))
+            else: self.colour = fathers[np.random.choice(2)].colour
+            if np.random.choice(100)+1 <= mutation_prob: self.size = np.random.choice(round(sq_size*0.35))+1
+            else: self.size = fathers[np.random.choice(2)].size
+            if np.random.choice(100)+1 <= mutation_prob: self.offspring_size = np.random.choice(round(self.size/3)+1)+1
+            else: self.offspring_size = mother.offspring_size
+            if np.random.choice(100)+1 <= mutation_prob: 
+                max_offspring_n = round(round(self.size*0.33)/self.offspring_size)
+                if max_offspring_n == 0: max_offspring_n = 1
+                self.offspring_number = np.random.choice(max_offspring_n)+1
+            else: 
+                self.offspring_number = mother.offspring_number
+            if np.random.choice(100)+1 <= mutation_prob: self.gestation_period = np.random.choice(150)+150
+            else: self.gestation_period = mother.gestation_period
+            if np.random.choice(100)+1 <= mutation_prob: self.childhood = np.random.choice(75)+15
+            else: self.childhood = mother.childhood
+            
+            
+            self.growth = round((self.size-self.childhood_size)/self.childhood) 
         
         # Common attributes
         ## Death
         self.death_prob = 0.0 
         ## Reproduction
         self.gender = genders[np.random.choice(2)]
-        self.gestation_days = 0
-        if self.gender == "Male": 
-            self.gestation_period = None
-            self.offspring_size = None
-            self.offspring_number = None
-        elif self.gender == "Female": 
-            self.gestation_period = np.random.choice(150)+150
-            self.offspring_size = np.random.choice(round(self.size/3)+1)+1
-            max_offspring_n = round(round(self.size*0.33)/self.offspring_size)
-            if max_offspring_n == 0: max_offspring_n = 1
-            self.offspring_number = np.random.choice(max_offspring_n)+1
-            
-            
+        self.gestation_days = 0      
+                    
     def update_pos(self, n_squares, sq_size, bg_mat):
         """
         Sets a new position for the individual near the previous one 
