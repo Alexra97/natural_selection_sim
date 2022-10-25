@@ -9,6 +9,7 @@ Created on 12 oct 2022
 import pygame as pg
 from graphics import world_gen as wg
 from graphics import species_gen as sg
+from graphics import menu_info as mi
 import time
 
 # Variables
@@ -21,7 +22,7 @@ days = 0
 individuals = []
 pause_time = True
 day_speed = 0.3
-
+menu = False
 
 # Pyhame display initialitation
 pg.display.init()
@@ -30,12 +31,13 @@ pg.display.set_caption('Natural Selection Simulator')
 pg.font.init()
 font = pg.font.SysFont('Consolas', 30)
 
-# Create a new random world
+# Create a new random world and save it
 bg_mat = wg.createBg(n_squares, sq_size)
 
-# Load it as an image
+# Load pre-saved images
 bg = pg.image.load("bg.png").convert()
-screen.blit(bg, (0, 0))
+menu_img = pg.image.load(".\\img\\menu.png").convert_alpha()
+menu_img = pg.transform.scale(menu_img, (n_squares*sq_size*0.8, n_squares*sq_size*0.8))
 
 # Main loop
 while not finish:
@@ -46,23 +48,37 @@ while not finish:
             
         # Key down events
         if event.type == pg.KEYDOWN:
-            if event.key == pg.K_ESCAPE:                                    # Esc to exit
+            if event.key == pg.K_ESCAPE:                                                # Esc to exit
                 finish = True
-            elif event.key == pg.K_RIGHT:                                   # Right arrow to advance time
+            elif event.key == pg.K_RIGHT and menu == False:                             # Right arrow to advance time
                 pause_time = False    
-            elif event.key == pg.K_UP:                                      # Up arrow to increase advancing speed
+            elif event.key == pg.K_UP:                                                  # Up arrow to increase advancing speed
                 day_speed /= 2
-            elif event.key == pg.K_DOWN:                                    # Down arrow to decrease advancing speed
+            elif event.key == pg.K_DOWN:                                                # Down arrow to decrease advancing speed
                 day_speed *= 2
-            elif event.key == pg.K_SPACE:                                   # Space to generate new species
+            elif event.key == pg.K_SPACE and menu == False:                                               # Space to generate new species
                 sg.gen_individuals(n_squares, sq_size, bg_mat, individuals) 
+            elif event.key == pg.K_m:  
+                if individuals: menu = not menu                                         # M to open or close the menu
+                           
         # Key up events
         elif event.type == pg.KEYUP:
             if event.key == pg.K_RIGHT:
                     pause_time = True
   
+    
+    # Display world
+    screen.blit(bg, (0, 0))
+    
     # Display each individual
     sg.display_individuals(individuals, screen)  
+    
+    # Display menu
+    if menu:
+        screen.blit(menu_img, (n_squares*sq_size*0.1, n_squares*sq_size*0.1))   
+        dominant_name = mi.get_dominant_species(individuals)
+        info = mi.get_dominant_info(dominant_name, individuals)
+        mi.display_info(info, screen, n_squares*sq_size)
     
     # When time is advancing
     if not pause_time:
