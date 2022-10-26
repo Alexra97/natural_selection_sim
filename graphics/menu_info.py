@@ -75,9 +75,14 @@ def get_dominant_info(dominant_name, ind_list):
     info.append(round(old_age_death/n_ind/365,2))
     info.append(round(age/n_ind/365,2))
     info.append(round(childhood/n_ind/30,2))
-    info.append(round(gestation_period/n_fem/30,2))
-    info.append(round(offspring_size/n_fem,2))
-    info.append(round(offspring_number/n_fem,2))
+    if n_fem > 0:
+        info.append(round(gestation_period/n_fem/30,2))
+        info.append(round(offspring_size/n_fem,2))
+        info.append(round(offspring_number/n_fem,2))
+    else: 
+        info.append(0)
+        info.append(0)
+        info.append(0)
     colour[0] = round(colour[0]/n_ind)
     colour[1] = round(colour[1]/n_ind)
     colour[2] = round(colour[2]/n_ind)

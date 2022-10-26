@@ -51,7 +51,7 @@ def gen_individuals(n_squares, sq_size, bg_mat, ind_list):
     ind_list.append(specimen)
     
     # Generate the normal individuals
-    n_ind = np.random.choice(30)+1
+    n_ind = 50
     for _ in range(n_ind):
         i = species.Species(n_squares, sq_size, bg_mat, specimen)
         ind_list.append(i)        
@@ -97,17 +97,15 @@ def update_individuals(ind_list, n_squares, sq_size, bg_mat):
                     if e.mother == i: ind_list.append(e)
             i.gestation_days = 0
         # Reproduction
-        if i.age >= i.childhood and i.gestation_days == 0:
+        if i.gender == "Female" and i.age >= i.childhood and i.gestation_days == 0:
             for j in ind_list:
-                if j.name == i.name and j.gender != i.gender and euclidean_dist(j.location, i.location) <= sq_size:
-                    if j.gender == "Female": 
-                        j.gestation_days += 1
-                        for _ in range(j.offspring_number):
-                            embryos.append(species.Species(n_squares, sq_size, bg_mat, i, j))
-                    else: 
-                        i.gestation_days += 1
-                        for _ in range(i.offspring_number):
-                            embryos.append(species.Species(n_squares, sq_size, bg_mat, j, i))
+                if j.name == i.name and j.gender == "Male" and euclidean_dist(j.location, i.location) <= sq_size:
+                    i.gestation_days += 1
+                    for _ in range(i.offspring_number):
+                        embryos.append(species.Species(n_squares, sq_size, bg_mat, j, i))
+                    break
+        # Pregnancy
+        if i.gestation_days > 0: i.gestation_days += 1
         # Death
         calculate_death_prob(i, bg_mat, sq_size)
         if i.death_prob*100 >= np.random.choice(100)+1: ind_list.remove(i)
@@ -115,16 +113,12 @@ def update_individuals(ind_list, n_squares, sq_size, bg_mat):
     
 def calculate_death_prob(i, bg_mat, sq_size):
     # Define probabilities
-    death_prob = 0.0
-    grass_prob = 0.1
+    death_prob = 0.01
     child_prob = 0.001
-    old_prob = 0.2
-    size_prob = 0.01
-    cammo_prob = 0.001
-    
-    # Habitat
-    habitat = bg_mat[ceil(i.location[0]/sq_size)-1][ceil(i.location[1]/sq_size)-1]
-    if i.s_type == "Terrestrial" and habitat == GRASS: death_prob -= grass_prob        
+    old_prob = 0.5
+    size_prob = 0.001
+    cammo_prob = 0.0001
+        
     # Age
     if i.age <= i.childhood: death_prob += child_prob  
     elif i.age >= i.old_age_death: death_prob += old_prob  
@@ -135,12 +129,12 @@ def calculate_death_prob(i, bg_mat, sq_size):
         
     
     # Camouflage
+    habitat = bg_mat[ceil(i.location[0]/sq_size)-1][ceil(i.location[1]/sq_size)-1]
     cammo_diff = euclidean_dist(i.colour, RGBs[habitat])
     death_prob += cammo_diff*cammo_prob
     
     # Update probability
     i.death_prob = death_prob
-    print(death_prob)
 
 
 

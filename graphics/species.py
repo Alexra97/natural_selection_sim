@@ -8,8 +8,6 @@ Created on 13 oct 2022
 # Imports
 import numpy as np
 from math import ceil
-from os import listdir
-from os.path import isfile, join
 
 # Global variables
 tax_first = open("tax_first.txt", "r")
@@ -186,13 +184,13 @@ class Species:
         # Specimen attributes
         if specimen is None:
             self.name = create_tax_name()
-            self.age = np.random.choice(75)
             self.s_type = types[np.random.choice(2)]
             self.colour = list(np.random.choice(256, 3))
             self.size = np.random.choice(round(sq_size*0.35))+1  
             self.location = set_position(self.s_type, n_squares, sq_size, bg_mat)
-            self.old_age_death = np.random.choice(1095)+730
-            self.childhood = np.random.choice(75)+15  
+            self.old_age_death = np.random.choice(365)+365
+            self.childhood = np.random.choice(75)+15 
+            self.age = np.random.choice(75)+self.childhood
             self.childhood_size = np.random.choice(round(self.size/3)+1)+1
             self.growth = round((self.size-self.childhood_size)/self.childhood)
             self.mother = None
@@ -200,28 +198,28 @@ class Species:
             max_offspring_n = round(round(self.size*0.33)/self.offspring_size)
             if max_offspring_n == 0: max_offspring_n = 1
             self.offspring_number = np.random.choice(max_offspring_n)+1
-            self.gestation_period = np.random.choice(150)+150
+            self.gestation_period = np.random.choice(90)+30
                 
         # Normal individual attributes
         elif specimen is not None and mother is None :
             self.name = specimen.name
-            self.age = np.random.choice(75)
             self.s_type = specimen.s_type
             self.colour = specimen.colour
             self.location = set_position(self.s_type, n_squares, sq_size, bg_mat, specimen.location)
-            self.old_age_death = specimen.old_age_death + np.random.choice(range(-700, 730))
+            self.old_age_death = specimen.old_age_death + np.random.choice(range(-365, 365))
             self.mother = None
             size_chg_pct = round(specimen.size/10)
             if size_chg_pct == 0: size_chg_pct = 1
             self.size = specimen.size + np.random.choice(range(-size_chg_pct, size_chg_pct))
             self.childhood = specimen.childhood
+            self.age = np.random.choice(75)+self.childhood
             self.childhood_size = np.random.choice(round(self.size/3)+1)+1
             self.growth = round((self.size-self.childhood_size)/self.childhood)
             self.offspring_size = np.random.choice(round(self.size/3)+1)+1
             max_offspring_n = round(round(self.size*0.33)/self.offspring_size)
             if max_offspring_n == 0: max_offspring_n = 1
             self.offspring_number = np.random.choice(max_offspring_n)+1
-            self.gestation_period = np.random.choice(150)+150
+            self.gestation_period = np.random.choice(90)+30
         
         # Offspring attributes
         else:
@@ -232,7 +230,7 @@ class Species:
             self.age = 0
             self.s_type = fathers[np.random.choice(2)].s_type
             self.location = mother.location
-            self.old_age_death = fathers[np.random.choice(2)].old_age_death + np.random.choice(range(-700, 730))
+            self.old_age_death = fathers[np.random.choice(2)].old_age_death + np.random.choice(range(-365, 365))
             self.mother = mother
             self.childhood_size = mother.offspring_size
             
@@ -249,7 +247,7 @@ class Species:
                 self.offspring_number = np.random.choice(max_offspring_n)+1
             else: 
                 self.offspring_number = mother.offspring_number
-            if np.random.choice(100)+1 <= mutation_prob: self.gestation_period = np.random.choice(150)+150
+            if np.random.choice(100)+1 <= mutation_prob: self.gestation_period = np.random.choice(90)+30
             else: self.gestation_period = mother.gestation_period
             if np.random.choice(100)+1 <= mutation_prob: self.childhood = np.random.choice(75)+15
             else: self.childhood = mother.childhood
@@ -262,7 +260,7 @@ class Species:
         self.death_prob = 0.0 
         ## Reproduction
         self.gender = genders[np.random.choice(2)]
-        self.gestation_days = 0      
+        self.gestation_days = 0     
                     
     def update_pos(self, n_squares, sq_size, bg_mat):
         """
