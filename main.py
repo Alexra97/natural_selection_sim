@@ -57,7 +57,7 @@ while not finish:
             elif event.key == pg.K_DOWN:                                                # Down arrow to decrease advancing speed
                 day_speed *= 2
             elif event.key == pg.K_SPACE and menu == False:                             # Space to generate new species
-                sg.gen_individuals(n_squares, sq_size, bg_mat, individuals) 
+                sg.gen_individuals(n_squares, sq_size, bg_mat, individuals, 49) 
             elif event.key == pg.K_m:  
                 if individuals: menu = not menu                                         # M to open or close the menu
                            
