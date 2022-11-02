@@ -35,7 +35,7 @@ def euclidean_dist(p1, p2):
     if len(p1) == 2: return sqrt((p1[0]-p2[0])**2+(p1[1]-p2[1])**2) 
     elif len(p1) == 3: return sqrt((p1[0]-p2[0])**2+(p1[1]-p2[1])**2+(p1[2]-p2[2])**2)
 
-def gen_individuals(n_squares, sq_size, bg_mat, ind_list):
+def gen_individuals(n_squares, sq_size, bg_mat, ind_list, n_ind):
     """
     Generates between 11 and 20 individuals of an species
     
@@ -44,6 +44,7 @@ def gen_individuals(n_squares, sq_size, bg_mat, ind_list):
             sq_size (int): Size of squares
             bg_mat (int 2d array): Numerical info of the world
             ind_list (list of Species): List of the individuals
+            n_ind (int): Number of individuals to generate
     """
     
     # Generate the specimen
@@ -51,7 +52,6 @@ def gen_individuals(n_squares, sq_size, bg_mat, ind_list):
     ind_list.append(specimen)
     
     # Generate the normal individuals
-    n_ind = 50
     for _ in range(n_ind):
         i = species.Species(n_squares, sq_size, bg_mat, specimen)
         ind_list.append(i)        
@@ -107,17 +107,18 @@ def update_individuals(ind_list, n_squares, sq_size, bg_mat):
         # Pregnancy
         if i.gestation_days > 0: i.gestation_days += 1
         # Death
-        calculate_death_prob(i, bg_mat, sq_size)
+        calculate_death_prob(i, bg_mat, sq_size, ind_list)
         if i.death_prob*100 >= np.random.choice(100)+1: ind_list.remove(i)
                             
     
-def calculate_death_prob(i, bg_mat, sq_size):
+def calculate_death_prob(i, bg_mat, sq_size, ind_list):
     # Define probabilities
-    death_prob = 0.01
-    child_prob = 0.001
+    death_prob = 0.0
+    child_prob = 0.0001
     old_prob = 0.5
     size_prob = 0.001
     cammo_prob = 0.0001
+    res_terr_prob = 0.4
         
     # Age
     if i.age <= i.childhood: death_prob += child_prob  
@@ -126,12 +127,17 @@ def calculate_death_prob(i, bg_mat, sq_size):
     if i.age <= i.childhood: death_prob -= i.childhood_size*size_prob
     else:
         if i.size > 0: death_prob -= i.size*size_prob
-        
-    
     # Camouflage
     habitat = bg_mat[ceil(i.location[0]/sq_size)-1][ceil(i.location[1]/sq_size)-1]
     cammo_diff = euclidean_dist(i.colour, RGBs[habitat])
     death_prob += cammo_diff*cammo_prob
+    # Resources + Territory
+    nearby_i = 0
+    for j in ind_list:
+        if euclidean_dist(i.location, j.location) <= 3*sq_size: nearby_i+= 1
+        if nearby_i >= 20: 
+            death_prob += res_terr_prob   
+            break   
     
     # Update probability
     i.death_prob = death_prob
