@@ -6,7 +6,7 @@ Created on 13 oct 2022
 '''
 
 # Imports
-import numpy as np
+import random
 from math import ceil
 
 # Global variables
@@ -38,25 +38,25 @@ def set_position(s_type, n_squares, sq_size, bg_mat, prev_pos = None):
     
     # First position of specimen case
     if prev_pos is None:
-        x = np.random.choice(n_squares*sq_size-1)
-        y = np.random.choice(n_squares*sq_size-1)
+        x = random.randint(0, n_squares*sq_size-1)
+        y = random.randint(0, n_squares*sq_size-1)
                 
         # Detect habitat borders
         if s_type == "Terrestrial":
             while bg_mat[ceil(x/sq_size)-1][ceil(y/sq_size)-1] == 2:
-                x = np.random.choice(n_squares*sq_size-1)
-                y = np.random.choice(n_squares*sq_size-1)
+                x = random.randint(0, n_squares*sq_size-1)
+                y = random.randint(0, n_squares*sq_size-1)
         elif s_type == "Aquatic":
             while bg_mat[ceil(x/sq_size)-1][ceil(y/sq_size)-1] != 2:
-                x = np.random.choice(n_squares*sq_size-1)
-                y = np.random.choice(n_squares*sq_size-1)
+                x = random.randint(0, n_squares*sq_size-1)
+                y = random.randint(0, n_squares*sq_size-1)
     
     # First position of normal individuals or walking case
     else:
-        max_move_frwd = round(sq_size*0.33)
-        max_move_bkwd = round(sq_size*-0.33)
-        x = prev_pos[0] + np.random.choice(range(max_move_bkwd, max_move_frwd))
-        y = prev_pos[1] + np.random.choice(range(max_move_bkwd, max_move_frwd))
+        max_move_frwd = round(sq_size*0.5)
+        max_move_bkwd = round(sq_size*-0.5)
+        x = prev_pos[0] + random.randint(max_move_bkwd, max_move_frwd)
+        y = prev_pos[1] + random.randint(max_move_bkwd, max_move_frwd)
         
         # Check window limits
         if x > n_squares*sq_size: x = n_squares*sq_size
@@ -67,8 +67,8 @@ def set_position(s_type, n_squares, sq_size, bg_mat, prev_pos = None):
         # Detect habitat borders
         if s_type == "Terrestrial":
             while bg_mat[ceil(x/sq_size)-1][ceil(y/sq_size)-1] == 2:
-                x = prev_pos[0] + np.random.choice(range(max_move_bkwd, max_move_frwd))
-                y = prev_pos[1] + np.random.choice(range(max_move_bkwd, max_move_frwd))
+                x = prev_pos[0] + random.randint(max_move_bkwd, max_move_frwd)
+                y = prev_pos[1] + random.randint(max_move_bkwd, max_move_frwd)
                 
                 # Check window limits
                 if x > n_squares*sq_size: x = n_squares*sq_size
@@ -77,8 +77,8 @@ def set_position(s_type, n_squares, sq_size, bg_mat, prev_pos = None):
                 if y < 0: y = 0
         elif s_type == "Aquatic":
             while bg_mat[ceil(x/sq_size)-1][ceil(y/sq_size)-1] != 2:
-                x = prev_pos[0] + np.random.choice(range(max_move_bkwd, max_move_frwd))
-                y = prev_pos[1] + np.random.choice(range(max_move_bkwd, max_move_frwd))
+                x = prev_pos[0] + random.randint(max_move_bkwd, max_move_frwd)
+                y = prev_pos[1] + random.randint(max_move_bkwd, max_move_frwd)
                 
                 # Check window limits
                 if x > n_squares*sq_size: x = n_squares*sq_size
@@ -100,11 +100,11 @@ def create_tax_name():
     if len(species) == 1936:
         print("ATTENTION: You have reached the limit of species.")
     else:
-        tax_name = names1[np.random.choice(len(names1))] + names2[np.random.choice(len(names2))]
+        tax_name = names1[random.randint(0, len(names1)-1)] + names2[random.randint(0, len(names2)-1)]
         
         # Check that the name is unique
         while tax_name in species:
-            tax_name = names1[np.random.choice(len(names1))] + names2[np.random.choice(len(names2))]
+            tax_name = names1[random.randint(0, len(names1)-1)] + names2[random.randint(0, len(names2)-1)]
         
         species.append(tax_name)
         return tax_name
@@ -139,7 +139,7 @@ class Species:
                 Current days of gestation since fertilization
             gestation_period: int
                 Duration of gestation in females
-            offspring_size : int
+            offspring_size : float
                 Size of embryos
             offspring_number : int
                 Number of embryos
@@ -147,13 +147,13 @@ class Species:
                 Individual type based on its habitat
             colour : int tuple
                 Colour of the individual
-            size : int
+            size : float
                 Size of the individual
             location : int tuple
                 Position of the individual
-            childhood_size : int
+            childhood_size : float
                 Size of hatchling during its childhood
-            growth : int
+            growth : float
                 Size growth between days
             mother : Species
                 Mother object of the individual if exists
@@ -184,21 +184,19 @@ class Species:
         # Specimen attributes
         if specimen is None:
             self.name = create_tax_name()
-            self.s_type = types[np.random.choice(2)]
-            self.colour = list(np.random.choice(256, 3))
-            self.size = np.random.choice(round(sq_size*0.35))+1  
+            self.s_type = types[random.randint(0,1)]
+            self.colour = list(random.sample(range(0, 255), 3))
+            self.size = random.uniform(0, sq_size*0.4) 
             self.location = set_position(self.s_type, n_squares, sq_size, bg_mat)
-            self.old_age_death = np.random.choice(365)+365
-            self.childhood = np.random.choice(75)+15 
-            self.age = np.random.choice(75)+self.childhood
-            self.childhood_size = np.random.choice(round(self.size/3)+1)+1
-            self.growth = round((self.size-self.childhood_size)/self.childhood)
+            self.old_age_death = random.randint(60,365)
+            self.childhood = round(random.uniform(0.1,0.5) * self.old_age_death)+1
+            self.age = random.randint(self.childhood, self.old_age_death)
+            self.childhood_size = random.uniform(0.1, self.size*0.4)
+            self.growth = (self.size-self.childhood_size)/self.childhood
             self.mother = None
-            self.offspring_size = np.random.choice(round(self.size/3)+1)+1
-            max_offspring_n = round(round(self.size*0.33)/self.offspring_size)
-            if max_offspring_n == 0: max_offspring_n = 1
-            self.offspring_number = np.random.choice(max_offspring_n)+1
-            self.gestation_period = np.random.choice(90)+30
+            self.offspring_size = random.uniform(0.1, 0.4)*self.size
+            self.offspring_number = random.randint(1, round(self.size*0.4/self.offspring_size)+1)
+            self.gestation_period = round(random.uniform(0.1, 0.3) * self.old_age_death)
                 
         # Normal individual attributes
         elif specimen is not None and mother is None :
@@ -206,60 +204,52 @@ class Species:
             self.s_type = specimen.s_type
             self.colour = specimen.colour
             self.location = set_position(self.s_type, n_squares, sq_size, bg_mat, specimen.location)
-            self.old_age_death = specimen.old_age_death + np.random.choice(range(-365, 365))
+            self.old_age_death = specimen.old_age_death
             self.mother = None
-            size_chg_pct = round(specimen.size/10)
-            if size_chg_pct == 0: size_chg_pct = 1
-            self.size = specimen.size + np.random.choice(range(-size_chg_pct, size_chg_pct))
+            self.size = specimen.size + random.uniform(-specimen.size*0.1, specimen.size*0.1)
             self.childhood = specimen.childhood
-            self.age = np.random.choice(75)+self.childhood
-            self.childhood_size = np.random.choice(round(self.size/3)+1)+1
-            self.growth = round((self.size-self.childhood_size)/self.childhood)
-            self.offspring_size = np.random.choice(round(self.size/3)+1)+1
-            max_offspring_n = round(round(self.size*0.33)/self.offspring_size)
-            if max_offspring_n == 0: max_offspring_n = 1
-            self.offspring_number = np.random.choice(max_offspring_n)+1
-            self.gestation_period = np.random.choice(90)+30
+            self.age = random.randint(self.childhood, self.old_age_death)
+            self.childhood_size = random.uniform(0.1, self.size*0.4)
+            self.growth = (self.size-self.childhood_size)/self.childhood
+            self.offspring_size = random.uniform(0.1, 0.4)*self.size
+            self.offspring_number = random.randint(1, round(self.size*0.4/self.offspring_size)+1)
+            self.gestation_period = round(random.uniform(0.1, 0.3) * self.old_age_death)
         
         # Offspring attributes
         else:
-            mutation_prob = 10
+            mutation_prob = 0.1
             
             fathers = [specimen, mother]
             self.name = mother.name
             self.age = 0
-            self.s_type = fathers[np.random.choice(2)].s_type
+            self.s_type = fathers[random.randint(0,1)].s_type
             self.location = mother.location
-            self.old_age_death = fathers[np.random.choice(2)].old_age_death + np.random.choice(range(-365, 365))
+            self.old_age_death = fathers[random.randint(0,1)].old_age_death + random.randint(-30,30)
             self.mother = mother
             self.childhood_size = mother.offspring_size
             
             # Possible mutations
-            if np.random.choice(100)+1 <= mutation_prob: self.colour = list(np.random.choice(256, 3))
-            else: self.colour = fathers[np.random.choice(2)].colour
-            if np.random.choice(100)+1 <= mutation_prob: self.size = np.random.choice(round(sq_size*0.35))+1
-            else: self.size = fathers[np.random.choice(2)].size
-            if np.random.choice(100)+1 <= mutation_prob: self.offspring_size = np.random.choice(round(self.size/3)+1)+1
+            if random.uniform(0,1) <= mutation_prob: self.colour = list(random.sample(range(0, 255), 3))
+            else: self.colour = fathers[random.randint(0,1)].colour
+            if random.uniform(0,1) <= mutation_prob: self.size = random.uniform(0, sq_size*0.4) 
+            else: self.size = fathers[random.randint(0,1)].size
+            if random.uniform(0,1) <= mutation_prob: self.offspring_size = random.uniform(0.1, 0.4)*self.size
             else: self.offspring_size = mother.offspring_size
-            if np.random.choice(100)+1 <= mutation_prob: 
-                max_offspring_n = round(round(self.size*0.33)/self.offspring_size)
-                if max_offspring_n == 0: max_offspring_n = 1
-                self.offspring_number = np.random.choice(max_offspring_n)+1
-            else: 
-                self.offspring_number = mother.offspring_number
-            if np.random.choice(100)+1 <= mutation_prob: self.gestation_period = np.random.choice(90)+30
+            if random.uniform(0,1) <= mutation_prob: self.offspring_number = random.randint(1, round(self.size*0.4/self.offspring_size)+1)
+            else: self.offspring_number = mother.offspring_number
+            if random.uniform(0,1) <= mutation_prob: self.gestation_period = round(random.uniform(0.1, 0.3) * self.old_age_death)
             else: self.gestation_period = mother.gestation_period
-            if np.random.choice(100)+1 <= mutation_prob: self.childhood = np.random.choice(75)+15
-            else: self.childhood = mother.childhood
+            if random.uniform(0,1) <= mutation_prob: self.childhood = round(random.uniform(0.1,0.5) * self.old_age_death)+1
+            else: self.childhood = fathers[random.randint(0,1)].childhood
             
             
-            self.growth = round((self.size-self.childhood_size)/self.childhood) 
+            self.growth = (self.size-self.childhood_size)/self.childhood
         
         # Common attributes
         ## Death
         self.death_prob = 0.0 
         ## Reproduction
-        self.gender = genders[np.random.choice(2)]
+        self.gender = genders[random.randint(0,1)]
         self.gestation_days = 0     
                     
     def update_pos(self, n_squares, sq_size, bg_mat):
