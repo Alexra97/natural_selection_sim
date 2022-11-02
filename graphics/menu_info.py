@@ -45,7 +45,7 @@ def get_dominant_info(dominant_name, ind_list):
     
     # Initialize all local variables
     info = []
-    n_ind = n_fem = old_age_death = age = childhood = gestation_period = \
+    n_ind = n_fem = n_childs = old_age_death = age = childhood = gestation_period = \
     offspring_size = offspring_number = terrestrials = aquatics = size = childhood_size = 0
     colour = [0,0,0]
     
@@ -64,16 +64,18 @@ def get_dominant_info(dominant_name, ind_list):
             colour[0] += i.colour[0]
             colour[1] += i.colour[1]
             colour[2] += i.colour[2]
-            size += i.size
-            childhood_size += i.childhood_size
+            if i.age >= i.childhood: size += i.size
+            else: 
+                n_childs += 1
+                childhood_size += i.childhood_size
             
             if i.s_type == "Terrestrial": terrestrials += 1
             elif i.s_type == "Aquatic": aquatics += 1
             
     # Append means to the list
     info.append(i.name)
-    info.append(round(old_age_death/n_ind/365,2))
-    info.append(round(age/n_ind/365,2))
+    info.append(round(old_age_death/n_ind/30,2))
+    info.append(round(age/n_ind/30,2))
     info.append(round(childhood/n_ind/30,2))
     if n_fem > 0:
         info.append(round(gestation_period/n_fem/30,2))
@@ -87,8 +89,9 @@ def get_dominant_info(dominant_name, ind_list):
     colour[1] = round(colour[1]/n_ind)
     colour[2] = round(colour[2]/n_ind)
     info.append(tuple(colour))
-    info.append(round(size/n_ind,2))
-    info.append(round(childhood_size/n_ind,2))
+    info.append(round(size/(n_ind-n_childs),2))
+    if n_childs > 0: info.append(round(childhood_size/n_childs,2))
+    else: info.append(0)
     info.append(n_ind)
     if terrestrials > aquatics: info.append("Terrestrial")
     else: info.append("Aquatic")
@@ -111,8 +114,8 @@ def display_info(info, scr, win_size):
     # Generate text
     title_text = title.render("Dominant Species", True, (0,0,0))
     name = subtitle.render(str(info[0]), True, (0,0,0))
-    oad = subtitle.render("Life expectancy: "+str(info[1])+" years.", True, (0,0,0))
-    age = subtitle.render("Age: "+str(info[2])+" years.", True, (0,0,0))
+    oad = subtitle.render("Life expectancy: "+str(info[1])+" months.", True, (0,0,0))
+    age = subtitle.render("Age: "+str(info[2])+" months.", True, (0,0,0))
     childhood = subtitle.render("Childhood period: "+str(info[3])+" months.", True, (0,0,0))
     gp = subtitle.render("Gestation period: "+str(info[4])+" months.", True, (0,0,0))
     off_size = subtitle.render("Offspring size: "+str(info[5])+" m.", True, (0,0,0))
@@ -151,8 +154,8 @@ def display_info(info, scr, win_size):
         scr.blit(stone, (win_size*0.73, win_size*0.20)) 
         
         new_size = info[8]*win_size*0.1
-        pg.draw.circle(scr, info[7], (win_size*0.73-new_size/2-3, win_size*0.30-new_size/2-3), new_size/2)
-        pg.draw.circle(scr, (0,0,0), (win_size*0.73-new_size/2-3, win_size*0.30-new_size/2-3), new_size/2, 3)          
+        pg.draw.circle(scr, info[7], (win_size*0.73-new_size/2-3, win_size*0.30-new_size/2), new_size/2)
+        pg.draw.circle(scr, (0,0,0), (win_size*0.73-new_size/2-3, win_size*0.30-new_size/2), new_size/2, 3)          
     
     
     
