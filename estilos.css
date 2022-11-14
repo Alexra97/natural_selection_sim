@@ -88,11 +88,19 @@ nav ul li a {
   }
   
   h2 {
-    font-size: 15px;
+    font-size: 120%;
   }
   
   h3 {
-    font-size: 46px;
+    font-size: 100%;
+  }
+  
+  .coming {
+    font-size: 275%;
+  }
+  
+  .contenedor-build img {
+    height: 40vh; 
   }
 }
 
