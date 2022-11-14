@@ -88,7 +88,7 @@ nav ul li a {
   }
   
   h2 {
-    font-size: 120%;
+    font-size: 97%;
   }
   
   h3 {
@@ -100,13 +100,15 @@ nav ul li a {
   }
   
   .contenedor-build img {
-    height: 40vh; 
+    height: 31vh; 
   }
 }
 
 /* IPAD */
 @media (min-width: 600px) and (max-width:950px) {
-
+  .contenedor-build img {
+    height: 35vh; 
+  }
 }
 
   
