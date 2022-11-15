@@ -98,4 +98,3 @@ while not finish:
 # Free resources
 del individuals[:]
 pg.quit()
-
